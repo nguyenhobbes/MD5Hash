@@ -3,17 +3,27 @@
 #include <bitset>
 #include <unordered_map>
 #include <sstream>
+#include <iomanip>
+#include <cmath>
+
+const long long int mod = pow(2, 32);
+
 
 using namespace std;
 
-string stringToBinary(string s);
-string intToBinary(int num);
+//-----------------------FUNCTION DECLARATION----------------------------
+string stringToBin(string s);
+string decToBin(long long int num);
+long long int binToDec(string s);
 string binToHex(string s);
 string hexToBin(string hexStr);
+void cutStringInHalf(string& s);
+
 void paddingTo512Block(string& s);
 void printTheString(string s);
 
-void createHexMap(unordered_map<string, char>* hexMap);
+void createBinHexMap(unordered_map<string, char>* BinHexMap);
+void createHexBinMap(unordered_map<char, string>* HexBinMap);
 
 void hash512Block(string s);
 
@@ -26,7 +36,7 @@ string functionF(string b, string c, string d);
 
 int main() {
 	string text = "They are deterministic";
-	string bin = stringToBinary(text);
+	string bin = stringToBin(text);
 	
 	//This instance is to test for length = 447;
 	//string temp = bin.substr(0, 447);
@@ -39,15 +49,15 @@ int main() {
 	string hex = binToHex(bin);
 	//printTheString(hex);
 
-	int len = bin.length();
-	string lenBinary = intToBinary(len);
+	long long int len = bin.length();
+	string lenBinary = decToBin(len);
 
 	/*string* m = new string[16];
-	for (int i = 0; i < 16; i++)
+	for (long long int i = 0; i < 16; i++)
 	{
 		m[i] = hex.substr(8*i, 8);
 	}
-	for (int i = 0; i < 16; i++)
+	for (long long int i = 0; i < 16; i++)
 	{
 		cout << m[i] << endl;
 	}*/
@@ -60,47 +70,46 @@ int main() {
 	return 0;
 }
 
-void createHexMap(unordered_map<string, char>* hexMap) {
-	(*hexMap)["0000"] = '0';
-	(*hexMap)["0001"] = '1';
-	(*hexMap)["0010"] = '2';
-	(*hexMap)["0011"] = '3';
-	(*hexMap)["0100"] = '4';
-	(*hexMap)["0101"] = '5';
-	(*hexMap)["0110"] = '6';
-	(*hexMap)["0111"] = '7';
-	(*hexMap)["1000"] = '8';
-	(*hexMap)["1001"] = '9';
-	(*hexMap)["1010"] = 'a';
-	(*hexMap)["1011"] = 'b';
-	(*hexMap)["1100"] = 'c';
-	(*hexMap)["1101"] = 'd';
-	(*hexMap)["1110"] = 'e';
-	(*hexMap)["1111"] = 'f';
-}
-
-void createBinMap(unordered_map<char, string>* binMap) {
-	(*binMap)['0'] = "0000";
-	(*binMap)['1'] = "0001";
-	(*binMap)['2'] = "0010";
-	(*binMap)['3'] = "0011";
-	(*binMap)['4'] = "0100";
-	(*binMap)['5'] = "0101";
-	(*binMap)['6'] = "0110";
-	(*binMap)['7'] = "0111";
-	(*binMap)['8'] = "1000";
-	(*binMap)['9'] = "1001";
-	(*binMap)['a'] = "1010";
-	(*binMap)['b'] = "1011";
-	(*binMap)['c'] = "1100";
-	(*binMap)['d'] = "1101";
-	(*binMap)['e'] = "1110";
-	(*binMap)['f'] = "1111";
-
+void createBinHexMap(unordered_map<string, char>* BinHexMap) {
+	(*BinHexMap)["0000"] = '0';
+	(*BinHexMap)["0001"] = '1';
+	(*BinHexMap)["0010"] = '2';
+	(*BinHexMap)["0011"] = '3';
+	(*BinHexMap)["0100"] = '4';
+	(*BinHexMap)["0101"] = '5';
+	(*BinHexMap)["0110"] = '6';
+	(*BinHexMap)["0111"] = '7';
+	(*BinHexMap)["1000"] = '8';
+	(*BinHexMap)["1001"] = '9';
+	(*BinHexMap)["1010"] = 'a';
+	(*BinHexMap)["1011"] = 'b';
+	(*BinHexMap)["1100"] = 'c';
+	(*BinHexMap)["1101"] = 'd';
+	(*BinHexMap)["1110"] = 'e';
+	(*BinHexMap)["1111"] = 'f';
 }
 
 
-string stringToBinary(string s) {
+void createHexBinMap(unordered_map<char, string>* HexBinMap) {
+	(*HexBinMap)['0'] = "0000";
+	(*HexBinMap)['1'] = "0001";
+	(*HexBinMap)['2'] = "0010";
+	(*HexBinMap)['3'] = "0011";
+	(*HexBinMap)['4'] = "0100";
+	(*HexBinMap)['5'] = "0101";
+	(*HexBinMap)['6'] = "0110";
+	(*HexBinMap)['7'] = "0111";
+	(*HexBinMap)['8'] = "1000";
+	(*HexBinMap)['9'] = "1001";
+	(*HexBinMap)['a'] = "1010";
+	(*HexBinMap)['b'] = "1011";
+	(*HexBinMap)['c'] = "1100";
+	(*HexBinMap)['d'] = "1101";
+	(*HexBinMap)['e'] = "1110";
+	(*HexBinMap)['f'] = "1111";
+}
+
+string stringToBin(string s) {
 	//This function is to convert a given string into Binary form
 	string binaryString = "";
 	for (char& c : s)
@@ -110,7 +119,22 @@ string stringToBinary(string s) {
 	return binaryString;
 }
 
-string intToBinary(int num) {
+long long int binToDec(string s) {
+	long long int decimalValue = 0;
+	long long int power = 0;
+	long long int temp = 0;
+	// Iterate through the binary string from right to left
+	for (long long int i = s.length() - 1; i >= 0; --i) {
+		if (s[i] == '1') {
+			temp = pow(2, power);
+			decimalValue += temp;
+		}
+		power++;
+	}
+	return decimalValue;
+}
+
+string decToBin(long long int num) {
 	bitset<64> binary(num);
 	// Converting the binary representation to a string
 	return binary.to_string();
@@ -119,13 +143,13 @@ string intToBinary(int num) {
 string binToHex(string s) {
 	string hex = "";
 
-	unordered_map<string, char> hexMap;
-	createHexMap(&hexMap);
+	unordered_map<string, char> BinHexMap;
+	createBinHexMap(&BinHexMap);
 
 	//In this loop, we start to transform each 4-bit of binary into a hex character
-	for (int i = 0; i < s.length() - 3; i+=4)
+	for (long long int i = 0; i < s.length() - 3; i+=4)
 	{
-		hex += hexMap[s.substr(i, 4)];
+		hex += BinHexMap[s.substr(i, 4)];
 	}
 	return hex;
 }
@@ -133,21 +157,37 @@ string binToHex(string s) {
 string hexToBin(string s) {
 	string bin = "";
 
-	unordered_map<char, string> binMap;
-	createBinMap(&binMap);
+	unordered_map<char, string> HexBinMap;
+	createHexBinMap(&HexBinMap);
 
 	//In this loop, we start to transform each 4-bit of binary into a hex character
-	for (int i = 0; i < s.length(); i++)
+	for (long long int i = 0; i < s.length(); i++)
 	{
-		bin += binMap[s[i]];
+		bin += HexBinMap[s[i]];
 	}
 	return bin;
 }
 
+long long int hexToDec(string s) {
+	string temp = hexToBin(s);
+	return binToDec(temp);
+}
+
+
+string decToHex(long long int decimalValue) {
+	string temp = binToHex(decToBin(decimalValue));
+	cutStringInHalf(temp);
+	return temp;
+}
+
+void cutStringInHalf(string& s) {
+	 s = s.substr(s.length() / 2, s.length() / 2);
+}
+
 void paddingTo512Block(string& s) {
-	int len = s.length();
-	int block = len / 512 + 1;
-	int zeros;
+	long long int len = s.length();
+	long long int block = len / 512 + 1;
+	long long int zeros;
 	
 	//if the remain is exact 448
 	if (len % 512 >= 448) {
@@ -162,18 +202,18 @@ void paddingTo512Block(string& s) {
 		zeros = 512 * block - len - 64 - 1;
 	}
 	s += "1";
-	for (int i = 0; i < zeros; i++)
+	for (long long int i = 0; i < zeros; i++)
 	{
 		s += "0";
 	}
-	s += intToBinary(len);
+	s += decToBin(len);
 	
 }
 
 void printTheString(string s) {
-	for (int i = 0; i < s.length(); i+=8)
+	for (long long int i = 0; i < s.length(); i+=8)
 	{
-		for (int j = 0; j < 8; j++)
+		for (long long int j = 0; j < 8; j++)
 		{
 			cout << s[i + j];
 		}
@@ -250,20 +290,45 @@ string bwNOT(string hexStr) {
 
 
 void hash512Block(string s) {
-	string A = "01234567";
-	string B = "89abcdef";
-	string C = "fedcba98";
-	string D = "76543210";
+	string temp = s.substr(0, 8);
+	string a = "01234567";
+	string b = "89abcdef";
+	string c = "fedcba98";
+	string d = "76543210";
 
+	string k[64];
+	for (int i = 0; i < 64; i++)
+	{
+		k[i] = decToHex(floor(mod * abs(sin(i + 1))));
+		cout << "K[" << i + 1 << "] = " << k[i] << endl;
+	}
+	string F = functionF(b, c, d);
+	cout << F << endl;
+	long long int x = hexToDec(a);
+	long long int y = hexToDec(F);
+	long long int Fa = (x + y) % mod;
+	string ans = decToHex(Fa);
+	cout << ans << endl;
 
-	string f = functionF(B, C, D);
-	
+	x = hexToDec(temp);
+	y = hexToDec(ans);
+	Fa = (x + y) % mod;
+	ans = decToHex(Fa);
+	cout << ans << endl;
+
+	x = hexToDec(k[0]);
+	y = hexToDec(ans);
+	Fa = (x + y) % mod;
+	ans = decToHex(Fa);
+	cout << ans << endl;
 
 }
 
 string functionF(string b, string c, string d) {
 	return bwOR(bwAND(b, c), bwAND(bwNOT(b), d));
 }
+
+
 
 
 
