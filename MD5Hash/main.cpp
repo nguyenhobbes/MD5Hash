@@ -41,7 +41,7 @@ string functionH(string b, string c, string d);
 string functionI(string b, string c, string d);
 
 int main() {
-	string text = "They are deterministic";
+	string text = "a";
 	string bin = stringToBin(text);
 	
 	//This instance is to test for length = 447;
@@ -243,7 +243,7 @@ string bwAND(string hexStr1, string hexStr2) {
 			result += '0';
 		}
 	}
-
+	
 	return binToHex(result);
 }
 
@@ -282,6 +282,7 @@ string bwXOR(string hexStr1, string hexStr2) {
 
 	return binToHex(result);
 }
+
 
 // Perform bw NOT operation on a hexadecimal string
 string bwNOT(string hexStr) {
@@ -436,7 +437,7 @@ void hash512Block(string s) {
 	{
 		for (int j = 16 * i; j < 16 * (i + 1); j++) {
 			temp = m[r[i][j % 16]];
-			cout << "---------------ROUND " << j + 1 << ": " << m[r[i][j % 16]]  << endl;
+			cout << "---------------ROUND " << j + 1 << ": " << r[i][j % 16] << "\t" << m[r[i][j % 16]] << endl;
 			cout << a << endl << b << endl << c << endl << d << endl << endl;
 			//compute F and add A to F
 			switch (i)
@@ -518,10 +519,13 @@ void hash512Block(string s) {
 	Fa = (x + y) % mod;
 	finD = decToHex(Fa);
 
+	cout << endl << "Final Result:\n";
 	cout << finA << endl << finB << endl << finC << endl << finD << endl;
 
-	
-
+	b = "7d502063";
+	c = "8b3d715d";
+	d = "1de3a739";
+	cout << endl << functionI(b, c, d);
 }
 
 string functionF(string b, string c, string d) {
@@ -529,7 +533,7 @@ string functionF(string b, string c, string d) {
 }
 
 string functionG(string b, string c, string d) {
-	return bwOR(bwAND(b, d), bwAND(bwNOT(d), c));
+	return bwOR(bwAND(b, d), bwAND(c , bwNOT(d)));
 }
 
 string functionH(string b, string c, string d) {
