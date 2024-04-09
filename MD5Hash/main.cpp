@@ -32,6 +32,9 @@ string bwOR(string str1, string str2);
 string bwXOR(string str1, string str2);
 string bwNOT(string str);
 
+
+void leftRotateBin(string& s, int amount);
+
 string functionF(string b, string c, string d);
 
 int main() {
@@ -47,7 +50,7 @@ int main() {
 
 	//convert the block to hex string
 	string hex = binToHex(bin);
-	//printTheString(hex);
+	printTheString(hex);
 
 	long long int len = bin.length();
 	string lenBinary = decToBin(len);
@@ -136,8 +139,9 @@ long long int binToDec(string s) {
 
 string decToBin(long long int num) {
 	bitset<64> binary(num);
+	string temp = binary.to_string();
 	// Converting the binary representation to a string
-	return binary.to_string();
+	return temp;
 }
 
 string binToHex(string s) {
@@ -288,9 +292,21 @@ string bwNOT(string hexStr) {
 	return binToHex(result);
 }
 
+void leftRotateBin(string& binaryStr, int shiftAmount) {
+	int length = binaryStr.length();
+
+	// Perform left rotation operation
+	for (int i = 0; i < shiftAmount; i++) {
+		char temp = binaryStr[0]; // Store the leftmost bit
+		binaryStr.erase(0, 1);    // Remove the leftmost bit
+		binaryStr += temp;        // Append the leftmost bit to the right
+		//cout << binaryStr << endl;
+	}
+}
+
 
 void hash512Block(string s) {
-	string temp = s.substr(0, 8);
+	string temp;
 	string a = "01234567";
 	string b = "89abcdef";
 	string c = "fedcba98";
@@ -300,27 +316,63 @@ void hash512Block(string s) {
 	for (int i = 0; i < 64; i++)
 	{
 		k[i] = decToHex(floor(mod * abs(sin(i + 1))));
-		cout << "K[" << i + 1 << "] = " << k[i] << endl;
+		//cout << "K[" << i + 1 << "] = " << k[i] << endl;
 	}
-	string F = functionF(b, c, d);
-	cout << F << endl;
-	long long int x = hexToDec(a);
-	long long int y = hexToDec(F);
-	long long int Fa = (x + y) % mod;
-	string ans = decToHex(Fa);
-	cout << ans << endl;
 
-	x = hexToDec(temp);
-	y = hexToDec(ans);
-	Fa = (x + y) % mod;
-	ans = decToHex(Fa);
-	cout << ans << endl;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 16 * i; j < 16 * (i + 1); j++) {
+			temp = s.substr(8 * j, 8);
+			cout << "---------------ROUND " << j + 1 << ": " << temp << endl;
+			//compute F and add A to F
+			string F = functionF(b, c, d);
+			cout << F << endl;
+			long long int x = hexToDec(a);
+			long long int y = hexToDec(F);
+			long long int Fa = (x + y) % mod;
+			string ans = decToHex(Fa);
+			cout << ans << endl;
 
-	x = hexToDec(k[0]);
-	y = hexToDec(ans);
-	Fa = (x + y) % mod;
-	ans = decToHex(Fa);
-	cout << ans << endl;
+			//Add message Mi
+			x = hexToDec(temp);
+			y = hexToDec(ans);
+			Fa = (x + y) % mod;
+			ans = decToHex(Fa);
+			cout << ans << endl;
+
+
+			//Add Constant Ki
+			x = hexToDec(k[j]);
+			y = hexToDec(ans);
+			Fa = (x + y) % mod;
+			ans = decToHex(Fa);
+			cout << ans << endl;
+
+			//Rotate left
+			temp = hexToBin(ans);
+			leftRotateBin(temp, 7);
+			ans = binToHex(temp);
+			cout << ans << endl;
+
+			//Add B
+			x = hexToDec(b);
+			y = hexToDec(ans);
+			Fa = (x + y) % mod;
+			ans = decToHex(Fa);
+			cout << ans << endl << endl;
+
+			//Finishing up
+			a = d;
+			d = c;
+			c = b;
+			b = ans;
+
+
+			cout << a << endl << b << endl << c << endl << d << endl;
+		}
+	}
+
+	
 
 }
 
